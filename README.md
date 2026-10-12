@@ -1,7 +1,7 @@
 # Cafe Kinship: The Game
 
-Download the latest version from **Releases** (right side of this page) →
-`CafeKinship-Windows.zip`.
+Download the latest version from **Releases** (right side of this page): it's the
+`CafeKinship-Windows` zip under **Assets**.
 
 ## How to play
 1. Download the zip and unzip it somewhere (right-click → Extract All).
