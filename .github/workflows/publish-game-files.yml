@@ -1,0 +1,47 @@
+# Makes a new version of the game installable from the Cafe Kinship app.
+#
+# Publish a release with the game's zip attached and this runs by itself:
+# it uploads only the files that changed to the `game-files` release and
+# updates manifest.json there, which the app checks every time it opens.
+# Details: PUBLISHING.md and tools/publish_files.py.
+name: Publish game files
+
+on:
+  release:
+    types: [published]
+  # Run it again by hand from the Actions tab, e.g. for a release that was
+  # published before this existed, or after attaching a zip later.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (for example v0.2.0)
+        required: true
+
+permissions:
+  contents: write
+
+# One at a time, so two quick releases can't mix their files.
+concurrency:
+  group: publish-game-files
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Prereleases are for testing: they don't go out to players.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.release.tag_name != 'game-files' && !github.event.release.prerelease)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make room on the disk
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+
+      - name: Upload the changed files and the new file list
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: python3 tools/publish_files.py
